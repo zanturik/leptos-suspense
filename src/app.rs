@@ -19,7 +19,7 @@ pub fn App() -> impl IntoView {
         <header>
             <nav>
                 <a href="/">Home</a>
-                <a href="/products/1/2">Product #1</a>
+                <a href="/products/1">Product #1</a>
             </nav>
         </header>
         <div class="container">
@@ -34,7 +34,6 @@ pub fn App() -> impl IntoView {
                 <Routes>
                     <Route path="/" view=HomePage/>
                     <Route path="/products/:product_id" view=ShowProduct>
-                        <Route path=":id" view=ShowVariant/>
                     </Route>
                 </Routes>
         </Router>
@@ -54,40 +53,13 @@ fn HomePage() -> impl IntoView {
 }
 
 #[component]
-pub fn ShowVariant() -> impl IntoView {
-    let (var_id, _) = create_signal(55);
-    let variant = create_resource(var_id, |id| async move { load_data(id).await });
-
-    view! {
-        <h3>Refresh this page (CTRL+F5)</h3>
-        {
-            move || match variant.get() {
-                None => view! { <p>"no variant found... yet..."</p> }.into_view(),
-                Some(s) => view! { <p>variant! { s }</p>
-                }.into_view()
-            }
-        }
-    }
-}
-
-#[component]
 pub fn ShowProduct() -> impl IntoView {
     let (pr_id, _) = create_signal(32);
     let product = create_blocking_resource(pr_id, |id| async move { load_data(id).await });
 
     view! {
-
-        <Suspense
-        fallback=move || view! { <p> empty </p>}
-    >
-    {
-        move || product.get().map(|pr|
-            view! {
-                <h1>{ pr }</h1>
-                <Outlet/>
-            }
-        )
-    }
-            </Suspense>
+        <Suspense>
+            <Meta name="description" content=move || product.get().map(|v| v.to_string()).unwrap_or_default()/>
+        </Suspense>
     }
 }
