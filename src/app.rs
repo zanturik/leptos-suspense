@@ -13,9 +13,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-
         <Stylesheet id="leptos" href="/pkg/leptos-resources.css"/>
-
         <header>
             <nav>
                 <a href="/">Home</a>
@@ -33,7 +31,7 @@ pub fn App() -> impl IntoView {
         }>
                 <Routes>
                     <Route path="/" view=HomePage/>
-                    <Route path="/products/:product_id" view=ShowProduct>
+                    <Route ssr=SsrMode::PartiallyBlocked path="/products/:product_id" view=ShowProduct>
                     </Route>
                 </Routes>
         </Router>
