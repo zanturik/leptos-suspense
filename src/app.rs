@@ -57,7 +57,9 @@ pub fn ShowProduct() -> impl IntoView {
 
     view! {
         <Suspense>
+            <Show when=move || product.get().map(|v| v.to_string()).is_some()>
             <Meta name="description" content=move || product.get().map(|v| v.to_string()).unwrap_or_default()/>
+            </Show>
         </Suspense>
     }
 }
