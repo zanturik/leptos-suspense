@@ -2,9 +2,14 @@ use crate::error_template::{AppError, ErrorTemplate};
 use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
+#[cfg(feature = "ssr")]
+use tokio::time::{self, Duration};
 
-async fn load_data(value: i32) -> i32 {
-    value + 10
+#[server(GetData, "/api", "GetJson", "getData")]
+async fn load_data(value: i32) -> Result<i32, ServerFnError> {
+    dbg!(format!("executing load_data with {} value", &value));
+    // time::sleep(Duration::from_secs(value.try_into().unwrap())).await;
+    Ok(value + 10)
 }
 
 #[component]
@@ -31,11 +36,13 @@ pub fn App() -> impl IntoView {
         }>
                 <Routes>
                     <Route path="/" view=HomePage/>
-                    <Route ssr=SsrMode::PartiallyBlocked path="/products/:product_id" view=ShowProduct>
+                    <Route path="/products/:product_id" view=ShowProduct>
+                        <Route path=":variant_id" view=TestProduct/>
                     </Route>
                 </Routes>
         </Router>
     </div>
+
     }
 }
 
@@ -52,13 +59,51 @@ fn HomePage() -> impl IntoView {
 
 #[component]
 pub fn ShowProduct() -> impl IntoView {
-    let (pr_id, _) = create_signal(32);
-    let product = create_blocking_resource(pr_id, |id| async move { load_data(id).await });
+    let (pr_id, _) = create_signal(3);
+    let product = create_blocking_resource(pr_id, |id| async move {
+        load_data(id).await.unwrap_or_default()
+    });
 
     view! {
         <Suspense>
-            <Show when=move || product.get().map(|v| v.to_string()).is_some()>
-            <Meta name="description" content=move || product.get().map(|v| v.to_string()).unwrap_or_default()/>
+            <Show when=move || product.get().is_some()>
+                <Meta name="description" content=move || product.get().unwrap_or_default().to_string()/>
+            </Show>
+
+            <Outlet/>
+        </Suspense>
+    }
+}
+
+#[component]
+pub fn TestProduct() -> impl IntoView {
+    let (pr_id, _) = create_signal(2);
+    let product = create_blocking_resource(pr_id, |id| async move {
+        load_data(id).await.unwrap_or_default()
+    });
+
+    view! {
+        <Suspense>
+            <Show when=move || product.get().is_some()>
+                <Meta name="name" content=move || product.get().unwrap_or_default().to_string()/>
+            </Show>
+
+            <AnotherTestProduct/>
+        </Suspense>
+    }
+}
+
+#[component]
+pub fn AnotherTestProduct() -> impl IntoView {
+    let (pr_id, _) = create_signal(55);
+    let product = create_blocking_resource(pr_id, |id| async move {
+        load_data(id).await.unwrap_or_default()
+    });
+
+    view! {
+        <Suspense>
+            <Show when=move || product.get().is_some()>
+                <Meta name="comments" content=move || product.get().unwrap_or_default().to_string()/>
             </Show>
         </Suspense>
     }
