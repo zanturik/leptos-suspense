@@ -1,7 +1,11 @@
-use crate::error_template::{AppError, ErrorTemplate};
-use leptos::*;
-use leptos_meta::*;
-use leptos_router::*;
+use leptos::prelude::*;
+use leptos_meta::{Meta, provide_meta_context, MetaTags, Stylesheet};
+use leptos_router::{
+    path,
+    components::{Route, Router, Routes, ParentRoute},
+    StaticSegment,
+    nested_router::Outlet
+};
 #[cfg(feature = "ssr")]
 use tokio::time::{self, Duration};
 
@@ -12,9 +16,27 @@ async fn load_data(value: i32) -> Result<i32, ServerFnError> {
     Ok(value + 10)
 }
 
+pub fn shell(options: LeptosOptions) -> impl IntoView {
+    view! {
+        <!DOCTYPE html>
+        <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <AutoReload options=options.clone() />
+                <HydrationScripts options/>
+                <MetaTags/>
+            </head>
+            <body>
+                <App/>
+            </body>
+        </html>
+    }
+}
+
 #[component]
 pub fn App() -> impl IntoView {
-    logging::log!("App loaded...");
+    leptos::logging::log!("App loaded...");
     provide_meta_context();
 
     view! {
@@ -26,19 +48,12 @@ pub fn App() -> impl IntoView {
             </nav>
         </header>
         <div class="container">
-        <Router fallback=|| {
-            let mut outside_errors = Errors::default();
-            outside_errors.insert_with_default_key(AppError::NotFound);
-            view! {
-                <ErrorTemplate outside_errors/>
-            }
-            .into_view()
-        }>
-                <Routes>
-                    <Route path="/" view=HomePage/>
-                    <Route path="/products/:product_id" view=ShowProduct>
-                        <Route path=":variant_id" view=TestProduct/>
-                    </Route>
+        <Router>
+                <Routes fallback=|| "Page not found.".into_view()>
+                    <Route path=StaticSegment("/") view=HomePage/>
+                    <ParentRoute path=path!{"/products/:product_id"} view=ShowProduct>
+                        <Route path=path!{":variant_id"} view=TestProduct/>
+                    </ParentRoute>
                 </Routes>
         </Router>
     </div>
@@ -48,7 +63,7 @@ pub fn App() -> impl IntoView {
 
 #[component]
 fn HomePage() -> impl IntoView {
-    let (count, set_count) = create_signal(0);
+    let (count, set_count) = signal(0);
     let on_click = move |_| set_count.update(|count| *count += 1);
 
     view! {
@@ -59,8 +74,8 @@ fn HomePage() -> impl IntoView {
 
 #[component]
 pub fn ShowProduct() -> impl IntoView {
-    let (pr_id, _) = create_signal(3);
-    let product = create_blocking_resource(pr_id, |id| async move {
+    let (pr_id, _) = signal(3);
+    let product = Resource::new_blocking(pr_id, |id| async move {
         load_data(id).await.unwrap_or_default()
     });
 
@@ -76,8 +91,8 @@ pub fn ShowProduct() -> impl IntoView {
 
 #[component]
 pub fn TestProduct() -> impl IntoView {
-    let (pr_id, _) = create_signal(2);
-    let product = create_blocking_resource(pr_id, |id| async move {
+    let (pr_id, _) = signal(2);
+    let product = Resource::new_blocking(pr_id, |id| async move {
         load_data(id).await.unwrap_or_default()
     });
 
@@ -93,8 +108,8 @@ pub fn TestProduct() -> impl IntoView {
 
 #[component]
 pub fn AnotherTestProduct() -> impl IntoView {
-    let (pr_id, _) = create_signal(5);
-    let product = create_blocking_resource(pr_id, |id| async move {
+    let (pr_id, _) = signal(5);
+    let product = Resource::new_blocking(pr_id, |id| async move {
         load_data(id).await.unwrap_or_default()
     });
 
