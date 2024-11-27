@@ -113,17 +113,17 @@ pub fn TestProduct() -> impl IntoView {
 
 #[server(GetVariants, "/api", "GetJson", "getVariants")]
 pub async fn get_variants(sl: String) -> Result<String, ServerFnError> {
-    let _db_pool = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _db_pool = use_context::<FakePool>();
     let _response = expect_context::<ResponseOptions>();
-    let _db_pool2 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _db_pool2 = use_context::<FakePool>();
     let _response3 = expect_context::<ResponseOptions>();
-    let _db_pool4 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _db_pool4 = use_context::<FakePool>();
     let _response5 = expect_context::<ResponseOptions>();
-    let _db_pool6 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _db_pool6 = use_context::<FakePool>();
     let _response7 = expect_context::<ResponseOptions>();
-    let _db_pool8 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _db_pool8 = use_context::<FakePool>();
     let _response9 = expect_context::<ResponseOptions>();
-    let _db_pool10 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _db_pool10 = use_context::<FakePool>();
     let _response11 = expect_context::<ResponseOptions>();
 
     Ok(sl + " bazinga!")
