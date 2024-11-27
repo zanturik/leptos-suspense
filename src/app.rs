@@ -1,19 +1,16 @@
 use leptos::prelude::*;
-use leptos_meta::{Meta, provide_meta_context, MetaTags, Stylesheet};
-use leptos_router::{
-    path,
-    components::{Route, Router, Routes, ParentRoute},
-    StaticSegment,
-    nested_router::Outlet
-};
 #[cfg(feature = "ssr")]
-use tokio::time::{self, Duration};
-
-#[server(GetData, "/api", "GetJson", "getData")]
-async fn load_data(value: i32) -> Result<i32, ServerFnError> {
-    dbg!(format!("executing load_data with {} value", &value));
-    time::sleep(Duration::from_secs(value.try_into().unwrap())).await;
-    Ok(value + 10)
+use leptos_axum::ResponseOptions;
+use leptos_meta::{provide_meta_context, MetaTags, Stylesheet};
+use leptos_router::{
+    components::{Route, Router, Routes},
+    StaticSegment,
+};
+use reactive_stores::Store;
+use serde::{Deserialize, Serialize};
+#[derive(Clone)]
+pub struct FakePool {
+    pub id: i32,
 }
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
@@ -34,10 +31,18 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
     }
 }
 
+#[derive(Debug, Store, Serialize, Deserialize, Default)]
+pub struct StoreData {
+    product: Option<String>,
+}
+
 #[component]
 pub fn App() -> impl IntoView {
-    leptos::logging::log!("App loaded...");
+    // leptos::logging::log!("App loaded...");
     provide_meta_context();
+
+    let store = Store::new(StoreData::default());
+    provide_context(store);
 
     view! {
         <Stylesheet id="leptos" href="/pkg/leptos-resources.css"/>
@@ -50,10 +55,7 @@ pub fn App() -> impl IntoView {
         <div class="container">
         <Router>
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("/") view=HomePage/>
-                    <ParentRoute path=path!{"/products/:product_id"} view=ShowProduct>
-                        <Route path=path!{":variant_id"} view=TestProduct/>
-                    </ParentRoute>
+                    <Route path=StaticSegment("/") view=ShowProduct/>
                 </Routes>
         </Router>
     </div>
@@ -62,62 +64,67 @@ pub fn App() -> impl IntoView {
 }
 
 #[component]
-fn HomePage() -> impl IntoView {
-    let (count, set_count) = signal(0);
-    let on_click = move |_| set_count.update(|count| *count += 1);
-
-    view! {
-        <h1>"Welcome to Leptos!"</h1>
-        <button on:click=on_click>"Click Me: " {count}</button>
-    }
-}
-
-#[component]
 pub fn ShowProduct() -> impl IntoView {
-    let (pr_id, _) = signal(3);
-    let product = Resource::new_blocking(pr_id, |id| async move {
-        load_data(id).await.unwrap_or_default()
+    let store =
+        use_context::<Store<StoreData>>().expect("App is not loaded. Store context not found!");
+
+    let product = Resource::new_blocking(
+        || (),
+        move |_| async move { String::from("You shell no pass!") },
+    );
+
+    let show_product = Suspend::new(async move {
+        let prod = product.await;
+        store.product().set(Some(prod.clone()));
+        view! { <h1>"Unsere reihe:" { prod }</h1>}
     });
 
     view! {
-        <Suspense>
-            <Show when=move || product.get().is_some()>
-                <Meta name="description" content=move || product.get().unwrap_or_default().to_string()/>
-            </Show>
-            <Outlet/>
-        </Suspense>
+
+        { show_product }
+        <b>Main component</b>
+        <TestProduct/>
+
     }
 }
 
 #[component]
 pub fn TestProduct() -> impl IntoView {
-    let (pr_id, _) = signal(2);
-    let product = Resource::new_blocking(pr_id, |id| async move {
-        load_data(id).await.unwrap_or_default()
-    });
+    let store =
+        use_context::<Store<StoreData>>().expect("App is not loaded. Store context not found!");
+
+    let variant = Resource::new_blocking(
+        move || store.product().get(),
+        |p| async move {
+            match p {
+                Some(s) => get_variants(s).await.unwrap_or_default(),
+                None => String::from("No variant No cry!"),
+            }
+        },
+    );
 
     view! {
         <Suspense>
-            <Show when=move || product.get().is_some()>
-                <Meta name="name" content=move || product.get().unwrap_or_default().to_string()/>
-            </Show>
-            <AnotherTestProduct/>
-        </Suspense>
+        { variant }
+        <b>Just a test</b>
+         </Suspense>
     }
 }
 
-#[component]
-pub fn AnotherTestProduct() -> impl IntoView {
-    let (pr_id, _) = signal(5);
-    let product = Resource::new_blocking(pr_id, |id| async move {
-        load_data(id).await.unwrap_or_default()
-    });
+#[server(GetVariants, "/api", "GetJson", "getVariants")]
+pub async fn get_variants(sl: String) -> Result<String, ServerFnError> {
+    let _db_pool = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _response = expect_context::<ResponseOptions>();
+    let _db_pool2 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _response3 = expect_context::<ResponseOptions>();
+    let _db_pool4 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _response5 = expect_context::<ResponseOptions>();
+    let _db_pool6 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _response7 = expect_context::<ResponseOptions>();
+    let _db_pool8 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _response9 = expect_context::<ResponseOptions>();
+    let _db_pool10 = use_context::<FakePool>().ok_or(ServerFnError::new("Cannot get db pool"))?;
+    let _response11 = expect_context::<ResponseOptions>();
 
-    view! {
-        <Suspense>
-            <Show when=move || product.get().is_some()>
-                <Meta name="comments" content=move || product.get().unwrap_or_default().to_string()/>
-            </Show>
-        </Suspense>
-    }
+    Ok(sl + " bazinga!")
 }
