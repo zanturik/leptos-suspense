@@ -4,7 +4,7 @@ use leptos_axum::ResponseOptions;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet};
 use leptos_router::{
     components::{Route, Router, Routes},
-    StaticSegment,
+    SsrMode, StaticSegment,
 };
 use reactive_stores::Store;
 use serde::{Deserialize, Serialize};
@@ -55,7 +55,7 @@ pub fn App() -> impl IntoView {
         <div class="container">
         <Router>
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("/") view=ShowProduct/>
+                    <Route ssr=SsrMode::PartiallyBlocked path=StaticSegment("/") view=ShowProduct/>
                 </Routes>
         </Router>
     </div>
