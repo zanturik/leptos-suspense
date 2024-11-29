@@ -27,16 +27,16 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 }
 
 #[server(GetData, "/api", "GetJson", "getData")]
-pub async fn get_data() -> Result<Vec<String>, ServerFnError> {
+pub async fn get_data() -> Result<String, ServerFnError> {
     let pool = use_context::<FakePool>().ok_or(ServerFnError::new("context not found"))?;
-    Ok(vec![format!("This is the data # {}", pool.id)])
+    Ok(format!("This is the data # {}", pool.id))
 }
 
 #[component]
 pub fn App() -> impl IntoView {
     let data = Resource::new_blocking(
         || (),
-        move |_| async move { get_data().await.unwrap_or_else(|e| vec![e.to_string()]) },
+        move |_| async move { get_data().await.unwrap_or_else(|e| e.to_string()) },
     );
     provide_context(data);
 
@@ -54,13 +54,11 @@ pub fn App() -> impl IntoView {
 
 #[component]
 fn HeaderComponent() -> impl IntoView {
-    let context_data = use_context::<Resource<Vec<String>>>().expect("Resource context not found!");
+    let context_data = use_context::<Resource<String>>().expect("Resource context not found!");
 
     let data = Suspend::new(async move {
-        let super_string = context_data.await.first().cloned().unwrap_or_default();
-
+        let super_string = context_data.await;
         view! {
-            <h2>Here we are!!!</h2>
             <b>{ super_string }</b>
         }
     });
@@ -72,7 +70,6 @@ fn HeaderComponent() -> impl IntoView {
     }
 }
 
-/// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
     view! {
