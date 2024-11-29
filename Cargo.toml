@@ -1,5 +1,5 @@
 [package]
-name = "leptos-resources"
+name = "leptos-islands-07-clean"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,13 +7,11 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.7.0-rc2", features = ["nightly"] }
+leptos = { version = "0.7.0-rc2", features = ["nightly", "tracing", "islands"] }
+leptos_axum = { version = "0.7.0-rc2", features=["dont-use-islands-router"], optional = true }
+leptos_meta = { version = "0.7.0-rc2" }
 leptos_router = { version = "0.7.0-rc2", features = ["nightly"] }
 reactive_stores = { version="0.1.0-rc2"}
-axum = { version = "0.7", optional = true }
-console_error_panic_hook = "0.1"
-leptos_axum = { version = "0.7.0-rc2", optional = true }
-leptos_meta = { version = "0.7.0-rc2" }
 tokio = { version = "1", features = ["full"], optional = true }
 tower = { version = "0.5", optional = true }
 tower-http = { version = "0.6", features = ["fs"], optional = true }
@@ -22,19 +20,18 @@ thiserror = "2"
 tracing = { version = "0.1", optional = true }
 http = "1"
 serde = { version = "^1.0", features = ["derive"] }
+axum = { version = "^0.7", optional = true }
+console_error_panic_hook = "^0.1"
 
 [features]
 hydrate = ["leptos/hydrate"]
 ssr = [
-    "dep:axum",
-    "dep:tokio",
-    "dep:tower",
-    "dep:tower-http",
-    "dep:leptos_axum",
-    "leptos/ssr",
-    "leptos_meta/ssr",
-    "leptos_router/ssr",
-    "dep:tracing",
+  "dep:axum",
+  "dep:tower",
+  "dep:tower-http",
+  "dep:tokio",
+  "leptos/ssr",
+  "dep:leptos_axum",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -47,7 +44,7 @@ panic = "abort"
 
 [package.metadata.leptos]
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "leptos-resources"
+output-name = "leptos-islands-07-clean"
 
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"
@@ -65,10 +62,10 @@ style-file = "style/main.scss"
 assets-dir = "public"
 
 # The IP and port (ex: 127.0.0.1:3000) where the server serves the content. Use it in your server setup.
-site-addr = "127.0.0.1:3038"
+site-addr = "127.0.0.1:3050"
 
 # The port to use for automatic reload monitoring
-reload-port = 3039
+reload-port = 3051
 
 # [Optional] Command to use when running end2end tests. It will run in the end2end dir.
 #   [Windows] for non-WSL use "npx.cmd playwright test"
